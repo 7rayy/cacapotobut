@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caca Fotobooth ✨ Pink Dream Edition</title>
+    <!-- Tailwind CSS & Google Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&family=Mali:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pinky: {
+                            50: '#fff0f5',
+                            100: '#ffe4ed',
+                            200: '#fecddc',
+                            300: '#fda4bf',
+                            400: '#fb7199',
+                            500: '#f43f75',
+                            600: '#e11d5a',
+                            700: '#be1248',
+                            800: '#9f1241',
+                            900: '#85143b',
+                        }
+                    },
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        quicksand: ['Quicksand', 'sans-serif'],
+                        mali: ['Mali', 'cursive'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #fff0f5 0%, #ffd1dc 50%, #ffe4e1 100%);
+            min-height: 100vh;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ffe4ed;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #fb7199;
+            border-radius: 10px;
+        }
+
+        /* Glassmorphism card */
+        .pink-glass {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 182, 193, 0.6);
+            box-shadow: 0 10px 30px rgba(244, 63, 117, 0.12);
+        }
+
+        /* Animated background sparkles */
+        .sparkle-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .sparkle {
+            position: absolute;
+            background: radial-gradient(circle, #fff 0%, rgba(255, 182, 193, 0.8) 70%, transparent 100%);
+            border-radius: 50%;
+            animation: floatSparkle 6s infinite ease-in-out;
+        }
+
+        @keyframes floatSparkle {
+            0%, 100% { transform: translateY(0) scale(0.8); opacity: 0.3; }
+            50% { transform: translateY(-25px) scale(1.2); opacity: 0.8; }
+        }
+
+        /* Filter Styles for Live Cam */
+        .filter-normal { filter: none; }
+        .filter-soft-pink { filter: saturate(1.2) contrast(0.95) brightness(1.08) hue-rotate(-10deg) sepia(0.15); }
+        .filter-vintage { filter: sepia(0.45) contrast(1.1) brightness(0.95) saturate(1.1); }
+        .filter-monochrome { filter: grayscale(1) contrast(1.2) brightness(1.05); }
+        .filter-warm-retro { filter: sepia(0.25) saturate(1.4) contrast(1.05) hue-rotate(5deg); }
+        .filter-dreamy { filter: brightness(1.1) contrast(0.9) saturate(1.3) blur(0.3px); }
+
+        /* Flash FX */
+        #flashOverlay {
+            transition: opacity 0.4s ease-out;
+        }
+        .flash-active {
+            opacity: 0.95 !important;
+            transition: opacity 0.05s ease-in !important;
+        }
+
+        /* Pulse Button glow */
+        .btn-pink-glow {
+            box-shadow: 0 0 15px rgba(244, 63, 117, 0.4);
+            transition: all 0.25s ease;
+        }
+        .btn-pink-glow:hover {
+            box-shadow: 0 0 25px rgba(244, 63, 117, 0.7);
+            transform: translateY(-2px);
+        }
+        .btn-pink-glow:active {
+            transform: translateY(1px);
+        }
+
+        /* Custom Shimmer Effect */
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                60deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.4) 50%,
+                transparent 70%
+            );
+            transform: rotate(30deg);
+            animation: shimmerMove 4s infinite linear;
+        }
+        @keyframes shimmerMove {
+            0% { transform: translate(-100%, -100%) rotate(30deg); }
+            100% { transform: translate(100%, 100%) rotate(30deg); }
+        }
+    </style>
+</head>
+<body class="text-slate-800 relative min-h-screen pb-12 overflow-x-hidden">
+
+    <!-- Background Sparkles -->
+    <div class="sparkle-bg" id="sparkleBg"></div>
+
+    <!-- Flash Overlay -->
+    <div id="flashOverlay" class="fixed inset-0 bg-white opacity-0 pointer-events-none z-50"></div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300 ease-out flex items-center gap-3 bg-pinky-600 text-white px-5 py-3.5 rounded-2xl shadow-xl font-medium">
+        <i class="fa-solid fa-heart-circle-check text-xl"></i>
+        <span id="toastMsg">Foto berhasil diambil! ✨</span>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 pt-6 relative z-10">
+        <!-- Header Section -->
+        <header class="text-center mb-8">
+            <div class="inline-flex items-center gap-2 bg-pinky-100 text-pinky-700 px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide border border-pinky-200 mb-2 shadow-sm">
+                <i class="fa-solid fa-wand-magic-sparkles text-pinky-500"></i>
+                <span>Caca Fotobooth Studio v2.0</span>
+                <i class="fa-solid fa-heart text-pinky-500 text-xs"></i>
+            </div>
+            <h1 class="font-fredoka text-4xl md:text-5xl font-bold text-pinky-700 tracking-tight drop-shadow-sm flex items-center justify-center gap-3">
+                <span>🌸</span>
+                <span>Caca Fotobooth</span>
+                <span>🎀</span>
+            </h1>
+            <p class="text-pinky-800/80 mt-1.5 font-medium text-base md:text-lg">Abadikan momen manis kamu dengan bingkai pink aesthetic!</p>
+        </header>
+
+        <!-- Main Grid Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- LEFT COLUMN: Live Camera & Controls (7 Cols) -->
+            <div class="lg:col-span-7 space-y-6">
+                <!-- Camera Card -->
+                <div class="pink-glass rounded-3xl p-4 md:p-6 relative">
+                    <!-- Top Camera Header Bar -->
+                    <div class="flex items-center justify-between mb-4 px-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded-full bg-red-400 animate-pulse"></span>
+                            <span class="font-fredoka text-sm font-semibold text-pinky-800 tracking-wider uppercase">Live Camera Feed</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="mirrorBtn" class="bg-pinky-100 hover:bg-pinky-200 text-pinky-700 text-xs font-semibold px-3 py-1.5 rounded-xl transition border border-pinky-300/50 flex items-center gap-1.5" title="Toggle Mirror">
+                                <i class="fa-solid fa-arrows-rotate"></i> Mirror
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Viewport Container -->
+                    <div class="relative w-full aspect-[4/3] bg-pinky-900/10 rounded-2xl overflow-hidden border-4 border-white shadow-inner flex items-center justify-center group">
+                        
+                        <!-- Video Feed -->
+                        <video id="webcam" autoplay playsinline class="w-full h-full object-cover filter-normal transition-all duration-300 -scale-x-100"></video>
+                        
+                        <!-- Canvas Hidden for frame capturing -->
+                        <canvas id="captureCanvas" class="hidden"></canvas>
+
+                        <!-- Countdown Screen Overlay -->
+                        <div id="countdownOverlay" class="absolute inset-0 bg-pinky-900/40 backdrop-blur-sm hidden flex-col items-center justify-center text-white z-20">
+                            <span id="countdownNumber" class="font-fredoka text-8xl font-bold animate-bounce text-pinky-200 drop-shadow-lg">3</span>
+                            <p id="countdownSub" class="font-mali text-xl mt-2 text-pinky-100 font-semibold">Siap-siap berpose! 📸</p>
+                        </div>
+
+                        <!-- Camera Fallback Notice (If no camera or denied) -->
+                        <div id="cameraFallback" class="absolute inset-0 bg-pinky-100 hidden flex-col items-center justify-center p-6 text-center z-10">
+                            <i class="fa-solid fa-camera-rotate text-5xl text-pinky-400 mb-3 animate-bounce"></i>
+                            <h3 class="font-fredoka text-lg text-pinky-800 font-semibold mb-1">Akses Kamera Belum Aktif</h3>
+                            <p class="text-xs text-pinky-600 max-w-xs mb-4">Izinkan akses kamera browser kamu, atau gunakan mode Demo Gambar untuk mencoba photobooth!</p>
+                            <button id="useDemoBtn" class="bg-pinky-500 hover:bg-pinky-600 text-white font-semibold text-xs px-4 py-2 rounded-xl transition shadow-md">
+                                <i class="fa-solid fa-image"></i> Gunakan Foto Contoh
+                            </button>
+                        </div>
+
+                        <!-- Live Frame Guide Overlay -->
+                        <div class="absolute inset-0 pointer-events-none border-2 border-pinky-400/30 rounded-2xl m-3 flex flex-col justify-between p-3">
+                            <div class="flex justify-between text-xs text-pinky-400/70 font-mali font-bold">
+                                <span>✦ CACA PHOTOBOOTH ✦</span>
+                                <span id="photoProgressText">0 / 3 Shot</span>
+                            </div>
+                            <div class="flex justify-center text-pinky-300/40 text-4xl">
+                                <i class="fa-solid fa-heart"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Photobooth Controls -->
+                    <div class="mt-5 space-y-4">
+                        <!-- Mode & Timer Selectors -->
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            <!-- Strip Layout Mode -->
+                            <div>
+                                <label class="block text-xs font-semibold text-pinky-800 mb-1">Layout Photo</label>
+                                <select id="layoutSelect" class="w-full bg-white border border-pinky-300 text-pinky-800 text-xs font-medium rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-pinky-400 shadow-sm">
+                                    <option value="3-cut">🎀 3 Cut Vertical Strip</option>
+                                    <option value="4-cut">🌸 4 Cut Classic Strip</option>
+                                    <option value="1-cut">✨ Single Photo Polaroid</option>
+                                </select>
+                            </div>
+
+                            <!-- Timer Delay -->
+                            <div>
+                                <label class="block text-xs font-semibold text-pinky-800 mb-1">Timer Countdown</label>
+                                <select id="timerSelect" class="w-full bg-white border border-pinky-300 text-pinky-800 text-xs font-medium rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-pinky-400 shadow-sm">
+                                    <option value="3">⚡ 3 Detik Delay</option>
+                                    <option value="5">⏳ 5 Detik Delay</option>
+                                    <option value="1">🚀 1 Detik Fast</option>
+                                </select>
+                            </div>
+
+                            <!-- Sound Toggle -->
+                            <div class="col-span-2 md:col-span-1">
+                                <label class="block text-xs font-semibold text-pinky-800 mb-1">Sound FX</label>
+                                <button id="soundToggleBtn" class="w-full bg-white hover:bg-pinky-50 border border-pinky-300 text-pinky-800 text-xs font-semibold rounded-xl p-2.5 transition flex items-center justify-center gap-2 shadow-sm">
+                                    <i class="fa-solid fa-volume-high text-pinky-500" id="soundIcon"></i>
+                                    <span id="soundText">Suara: ON</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Filter Options -->
+                        <div>
+                            <label class="block text-xs font-semibold text-pinky-800 mb-2">Pilih Filter Color</label>
+                            <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="filterContainer">
+                                <button data-filter="filter-normal" class="filter-btn active flex-shrink-0 bg-white border-2 border-pinky-500 text-pinky-800 text-xs font-semibold px-3.5 py-1.5 rounded-full shadow-sm hover:bg-pinky-100 transition">Normal</button>
+                                <button data-filter="filter-soft-pink" class="filter-btn flex-shrink-0 bg-white border border-pinky-300 text-pinky-800 text-xs font-semibold px-3.5 py-1.5 rounded-full shadow-sm hover:bg-pinky-100 transition">Soft Pink 🌸</button>
+                                <button data-filter="filter-dreamy" class="filter-btn flex-shrink-0 bg-white border border-pinky-300 text-pinky-800 text-xs font-semibold px-3.5 py-1.5 rounded-full shadow-sm hover:bg-pinky-100 transition">Dreamy ✨</button>
+                                <button data-filter="filter-vintage" class="filter-btn flex-shrink-0 bg-white border border-pinky-300 text-pinky-800 text-xs font-semibold px-3.5 py-1.5 rounded-full shadow-sm hover:bg-pinky-100 transition">Vintage 📼</button>
+                                <button data-filter="filter-warm-retro" class="filter-btn flex-shrink-0 bg-white border border-pinky-300 text-pinky-800 text-xs font-semibold px-3.5 py-1.5 rounded-full shadow-sm hover:bg-pinky-100 transition">Warm Retro 🌅</button>
+                                <button data-filter="filter-monochrome" class="filter-btn flex-shrink-0 bg-white border border-pinky-300 text-pinky-800 text-xs font-semibold px-3.5 py-1.5 rounded-full shadow-sm hover:bg-pinky-100 transition">B&W Film 🖤</button>
+                            </div>
+                        </div>
+
+                        <!-- Main Take Photo Button -->
+                        <div class="pt-2">
+                            <button id="startCaptureBtn" class="w-full bg-gradient-to-r from-pinky-500 via-pinky-600 to-pinky-500 text-white font-fredoka text-xl py-4 px-6 rounded-2xl btn-pink-glow flex items-center justify-center gap-3 tracking-wide border-2 border-pinky-300 shimmer">
+                                <i class="fa-solid fa-camera-retro text-2xl"></i>
+                                <span>MULAI FOTO SEKARANG</span>
+                                <i class="fa-solid fa-sparkles text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Canvas Photostrip Live Preview & Customizer (5 Cols) -->
+            <div class="lg:col-span-5 space-y-6">
+                <!-- Photostrip Builder Panel -->
+                <div class="pink-glass rounded-3xl p-5 md:p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="font-fredoka text-lg font-bold text-pinky-800 flex items-center gap-2">
+                            <i class="fa-solid fa-film text-pinky-500"></i>
+                            <span>Hasil Photo Strip</span>
+                        </h2>
+                        <span class="text-xs bg-pinky-200 text-pinky-800 font-semibold px-2.5 py-1 rounded-lg">Canvas Live</span>
+                    </div>
+
+                    <!-- Canvas Interactive Preview Frame Container -->
+                    <div class="flex justify-center bg-pinky-100/50 p-4 rounded-2xl border border-pinky-200 min-h-[420px] items-center relative overflow-hidden">
+                        
+                        <!-- Empty Canvas State Placeholder -->
+                        <div id="canvasEmptyState" class="text-center p-6">
+                            <div class="w-16 h-16 bg-pinky-200 text-pinky-500 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl animate-pulse">
+                                <i class="fa-solid fa-images"></i>
+                            </div>
+                            <p class="font-fredoka text-pinky-800 text-base font-medium">Strip Masih Kosong</p>
+                            <p class="text-xs text-pinky-600 mt-1 max-w-[200px] mx-auto">Klik tombol "Mulai Foto" di sebelah kiri untuk mengambil sesi foto otomatis!</p>
+                        </div>
+
+                        <!-- Real Generated Canvas Element -->
+                        <canvas id="photostripCanvas" class="max-h-[500px] w-auto shadow-2xl rounded-lg border-2 border-white transition-all duration-300 hidden"></canvas>
+                    </div>
+
+                    <!-- Customization Controls for Strip Canvas -->
+                    <div class="mt-5 space-y-4">
+                        <!-- Frame Color / Theme Picker -->
+                        <div>
+                            <label class="block text-xs font-semibold text-pinky-800 mb-1.5">Warna Frame Background</label>
+                            <div class="flex items-center gap-2" id="frameColorPicker">
+                                <button data-color="#fff0f5" class="color-dot w-7 h-7 rounded-full bg-[#fff0f5] border-2 border-pinky-500 shadow-sm transition transform scale-110" title="Soft Pink"></button>
+                                <button data-color="#ffb6c1" class="color-dot w-7 h-7 rounded-full bg-[#ffb6c1] border-2 border-transparent hover:border-pinky-400 shadow-sm transition" title="Light Pink"></button>
+                                <button data-color="#ff69b4" class="color-dot w-7 h-7 rounded-full bg-[#ff69b4] border-2 border-transparent hover:border-pinky-400 shadow-sm transition" title="Hot Pink"></button>
+                                <button data-color="#ffffff" class="color-dot w-7 h-7 rounded-full bg-[#ffffff] border-2 border-transparent hover:border-pinky-400 shadow-sm transition" title="Pure White"></button>
+                                <button data-color="#18181b" class="color-dot w-7 h-7 rounded-full bg-[#18181b] border-2 border-transparent hover:border-pinky-400 shadow-sm transition" title="Midnight Black"></button>
+                                <button data-color="#e6e6fa" class="color-dot w-7 h-7 rounded-full bg-[#e6e6fa] border-2 border-transparent hover:border-pinky-400 shadow-sm transition" title="Lavender"></button>
+                                <button data-color="#fffacd" class="color-dot w-7 h-7 rounded-full bg-[#fffacd] border-2 border-transparent hover:border-pinky-400 shadow-sm transition" title="Butter Cream"></button>
+                            </div>
+                        </div>
+
+                        <!-- Frame Decoration / Pattern -->
+                        <div>
+                            <label class="block text-xs font-semibold text-pinky-800 mb-1.5">Motif / Frame Style</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button data-pattern="plain" class="pattern-btn active border-2 border-pinky-500 bg-white text-pinky-800 text-xs py-1.5 px-2 rounded-xl font-medium shadow-sm">Polos Minimalis</button>
+                                <button data-pattern="hearts" class="pattern-btn border border-pinky-200 bg-white text-pinky-800 text-xs py-1.5 px-2 rounded-xl font-medium shadow-sm hover:bg-pinky-50">Heart Bows 💕</button>
+                                <button data-pattern="polka" class="pattern-btn border border-pinky-200 bg-white text-pinky-800 text-xs py-1.5 px-2 rounded-xl font-medium shadow-sm hover:bg-pinky-50">Polka Dots ⚪</button>
+                            </div>
+                        </div>
+
+                        <!-- Custom Caption Title -->
+                        <div>
+                            <label class="block text-xs font-semibold text-pinky-800 mb-1">Custom Caption Strip</label>
+                            <input type="text" id="customCaptionInput" value="✨ Caca's Photobooth ✨" placeholder="Tulis teks di bawah foto..." class="w-full bg-white border border-pinky-300 text-pinky-800 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-pinky-400 font-mali">
+                        </div>
+
+                        <!-- Sticker Stamp Layer -->
+                        <div>
+                            <label class="block text-xs font-semibold text-pinky-800 mb-1">Tambah Sticker Stamp (Klik untuk tempel)</label>
+                            <div class="flex gap-2 overflow-x-auto pb-1 text-xl" id="stickerTray">
+                                <button class="sticker-btn bg-white p-2 rounded-xl border border-pinky-200 hover:bg-pinky-100 transition">🎀</button>
+                                <button class="sticker-btn bg-white p-2 rounded-xl border border-pinky-200 hover:bg-pinky-100 transition">💖</button>
+                                <button class="sticker-btn bg-white p-2 rounded-xl border border-pinky-200 hover:bg-pinky-100 transition">🌸</button>
+                                <button class="sticker-btn bg-white p-2 rounded-xl border border-pinky-200 hover:bg-pinky-100 transition">✨</button>
+                                <button class="sticker-btn bg-white p-2 rounded-xl border border-pinky-200 hover:bg-pinky-100 transition">🧸</button>
+                                <button class="sticker-btn bg-white p-2 rounded-xl border border-pinky-200 hover:bg-pinky-100 transition">👑</button>
+                                <button class="sticker-btn bg-white p-2 rounded-xl border border-pinky-200 hover:bg-pinky-100 transition">🍓</button>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="pt-2 grid grid-cols-2 gap-3">
+                            <button id="downloadStripBtn" disabled class="bg-pinky-600 hover:bg-pinky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-md">
+                                <i class="fa-solid fa-download"></i> Download PNG
+                            </button>
+                            <button id="clearStripBtn" disabled class="bg-white hover:bg-pinky-100 text-pinky-700 border border-pinky-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
+                                <i class="fa-solid fa-rotate-left"></i> Foto Ulang
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GALLERY SECTION -->
+        <section class="mt-12">
+            <div class="pink-glass rounded-3xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="font-fredoka text-xl font-bold text-pinky-800 flex items-center gap-2">
+                            <i class="fa-solid fa-heart-pulse text-pinky-500"></i>
+                            <span>Galeri Sesi Foto Hari Ini</span>
+                        </h2>
+                        <p class="text-xs text-pinky-600 mt-0.5">Kumpulan foto photostrip yang sudah kamu buat</p>
+                    </div>
+                    <span id="galleryCount" class="text-xs font-bold bg-pinky-200 text-pinky-800 px-3 py-1 rounded-full">0 Foto</span>
+                </div>
+
+                <!-- Gallery Grid -->
+                <div id="galleryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <!-- Gallery empty message -->
+                    <div id="galleryEmpty" class="col-span-full text-center py-8 text-pinky-400 font-mali">
+                        <i class="fa-regular fa-face-smile-wink text-3xl mb-2 block"></i>
+                        <span>Belum ada foto tersimpan. Yuk buat strip pertama kamu!</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center mt-12 text-pinky-700/80 text-xs font-medium space-y-1">
+            <p>Made with 💖 by <strong>Anisa Ariyani</strong> (Universitas Negeri Jakarta 2025) for <strong>Caca Fotobooth Studio</strong></p>
+            <p>© 2026 Caca Photobooth UI — Anisa Ariyani (UNJ). All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Global State Variables
+        const state = {
+            webcamStream: null,
+            isDemoMode: false,
+            layoutMode: '3-cut', // '3-cut', '4-cut', '1-cut'
+            timerDelay: 3, // seconds
+            soundEnabled: true,
+            currentFilter: 'filter-normal',
+            isMirrored: true,
+            isCapturing: false,
+            capturedPhotos: [], // Array of Canvas Data URLs or Image Elements
+            frameColor: '#fff0f5',
+            framePattern: 'plain',
+            captionText: "✨ Caca's Photobooth ✨",
+            placedStickers: [], // Stickers applied to strip
+            galleryStrips: []
+        };
+
+        // DOM Elements
+        const webcam = document.getElementById('webcam');
+        const captureCanvas = document.getElementById('captureCanvas');
+        const photostripCanvas = document.getElementById('photostripCanvas');
+        const canvasEmptyState = document.getElementById('canvasEmptyState');
+        const countdownOverlay = document.getElementById('countdownOverlay');
+        const countdownNumber = document.getElementById('countdownNumber');
+        const cameraFallback = document.getElementById('cameraFallback');
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+        const flashOverlay = document.getElementById('flashOverlay');
+        const photoProgressText = document.getElementById('photoProgressText');
+
+        // Buttons & Inputs
+        const startCaptureBtn = document.getElementById('startCaptureBtn');
+        const mirrorBtn = document.getElementById('mirrorBtn');
+        const soundToggleBtn = document.getElementById('soundToggleBtn');
+        const layoutSelect = document.getElementById('layoutSelect');
+        const timerSelect = document.getElementById('timerSelect');
+        const customCaptionInput = document.getElementById('customCaptionInput');
+        const downloadStripBtn = document.getElementById('downloadStripBtn');
+        const clearStripBtn = document.getElementById('clearStripBtn');
+        const useDemoBtn = document.getElementById('useDemoBtn');
+        const galleryGrid = document.getElementById('galleryGrid');
+        const galleryEmpty = document.getElementById('galleryEmpty');
+        const galleryCount = document.getElementById('galleryCount');
+
+        // Web Audio Synth for cute camera sounds & countdown satisfy sound policy
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+        }
+
+        function playBeep(freq = 600, duration = 0.15, type = 'sine') {
+            if (!state.soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) { console.log(e); }
+        }
+
+        function playShutterSound() {
+            if (!state.soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            try {
+                // Synthesize shutter click (noise burst + tone)
+                const bufferSize = audioCtx.sampleRate * 0.08;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+
+                noise.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start();
+
+                // Beep pop tone
+                playBeep(900, 0.05, 'triangle');
+            } catch (e) { console.log(e); }
+        }
+
+        function playSuccessMelody() {
+            if (!state.soundEnabled) return;
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+            notes.forEach((freq, idx) => {
+                setTimeout(() => playBeep(freq, 0.2, 'sine'), idx * 120);
+            });
+        }
+
+        async function setupCamera() {
+            try {
+                const constraints = {
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 960 },
+                        facingMode: "user"
+                    },
+                    audio: false
+                };
+                state.webcamStream = await navigator.mediaDevices.getUserMedia(constraints);
+                webcam.srcObject = state.webcamStream;
+                cameraFallback.classList.add('hidden');
+                cameraFallback.classList.remove('flex');
+            } catch (err) {
+                console.warn("Kamera tidak diizinkan atau tidak ditemukan:", err);
+                cameraFallback.classList.remove('hidden');
+                cameraFallback.classList.add('flex');
+            }
+        }
+
+        // Demo Canvas Generator if webcam is unavailable
+        function generateDemoImage(index) {
+            const demoCanvas = document.createElement('canvas');
+            demoCanvas.width = 640;
+            demoCanvas.height = 480;
+            const ctx = demoCanvas.getContext('2d');
+
+            // Cute pastel gradient background
+            const grad = ctx.createLinearGradient(0, 0, 640, 480);
+            const colors = [
+                ['#ff9a9e', '#fecfef'],
+                ['#a1c4fd', '#c2e9fb'],
+                ['#ff85a2', '#ffc3a0'],
+                ['#fbc2eb', '#a6c1ee']
+            ];
+            const pair = colors[index % colors.length];
+            grad.addColorStop(0, pair[0]);
+            grad.addColorStop(1, pair[1]);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 640, 480);
+
+            // Draw cute avatar face
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(320, 240, 110, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = '#ff4081';
+            ctx.beginPath();
+            ctx.arc(280, 220, 12, 0, Math.PI * 2);
+            ctx.arc(360, 220, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Cheeks
+            ctx.fillStyle = 'rgba(255, 105, 180, 0.4)';
+            ctx.beginPath();
+            ctx.arc(265, 245, 16, 0, Math.PI * 2);
+            ctx.arc(375, 245, 16, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Smile
+            ctx.strokeStyle = '#ff4081';
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.arc(320, 245, 30, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+
+            // Text tag
+            ctx.font = 'bold 24px Quicksand';
+            ctx.fillStyle = '#85143b';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Caca Pose #${index + 1} ✨`, 320, 390);
+
+            return demoCanvas;
+        }
+
+        function getRequiredShotsCount() {
+            if (state.layoutMode === '3-cut') return 3;
+            if (state.layoutMode === '4-cut') return 4;
+            return 1;
+        }
+
+        function triggerFlash() {
+            flashOverlay.classList.add('flash-active');
+            setTimeout(() => {
+                flashOverlay.classList.remove('flash-active');
+            }, 100);
+        }
+
+        function showToast(msg) {
+            toastMsg.textContent = msg;
+            toast.classList.remove('translate-x-full');
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        async function startPhotoboothSession() {
+            if (state.isCapturing) return;
+            initAudio();
+            state.isCapturing = true;
+            state.capturedPhotos = [];
+            state.placedStickers = [];
+            startCaptureBtn.disabled = true;
+            startCaptureBtn.classList.add('opacity-75');
+
+            const totalShots = getRequiredShotsCount();
+
+            for (let i = 0; i < totalShots; i++) {
+                photoProgressText.textContent = `Pose ${i + 1} dari ${totalShots}`;
+                
+                // Countdown loop
+                countdownOverlay.classList.remove('hidden');
+                countdownOverlay.classList.add('flex');
+
+                for (let c = state.timerDelay; c > 0; c--) {
+                    countdownNumber.textContent = c;
+                    playBeep(440 + (state.timerDelay - c) * 100, 0.1, 'sine');
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+
+                // Snap photo
+                countdownOverlay.classList.add('hidden');
+                countdownOverlay.classList.remove('flex');
+                
+                triggerFlash();
+                playShutterSound();
+
+                // Capture Frame from Video or Demo Generator
+                let capturedCanvas;
+                if (state.webcamStream && webcam.readyState === 4 && !state.isDemoMode) {
+                    capturedCanvas = document.createElement('canvas');
+                    capturedCanvas.width = webcam.videoWidth || 1280;
+                    capturedCanvas.height = webcam.videoHeight || 960;
+                    const ctx = capturedCanvas.getContext('2d');
+
+                    if (state.isMirrored) {
+                        ctx.translate(capturedCanvas.width, 0);
+                        ctx.scale(-1, 1);
+                    }
+                    ctx.drawImage(webcam, 0, 0, capturedCanvas.width, capturedCanvas.height);
+                } else {
+                    capturedCanvas = generateDemoImage(i);
+                }
+
+                state.capturedPhotos.push(capturedCanvas);
+                showToast(`Foto pose ${i + 1} berhasil diambil! 💕`);
+
+                // Inter-shot delay buffer
+                if (i < totalShots - 1) {
+                    await new Promise(r => setTimeout(r, 800));
+                }
+            }
+
+            // Finish session & build composite strip on main Canvas
+            photoProgressText.textContent = `0 / ${totalShots} Shot`;
+            renderPhotostripCanvas();
+            playSuccessMelody();
+            showToast("Selesai! Photostrip kamu sudah jadi! ✨");
+
+            state.isCapturing = false;
+            startCaptureBtn.disabled = false;
+            startCaptureBtn.classList.remove('opacity-75');
+            downloadStripBtn.disabled = false;
+            clearStripBtn.disabled = false;
+        }
+
+        function renderPhotostripCanvas() {
+            if (state.capturedPhotos.length === 0) return;
+
+            const photos = state.capturedPhotos;
+            const numPhotos = photos.length;
+
+            // Canvas Output Resolution Dimensions
+            const stripWidth = 600;
+            const photoPadding = 30;
+            const photoWidth = stripWidth - (photoPadding * 2); // 540px
+            const photoAspect = 4 / 3;
+            const photoHeight = photoWidth / photoAspect; // 405px
+            
+            const headerHeight = 60;
+            const footerHeight = 110;
+            const photoGap = 25;
+
+            const totalStripHeight = headerHeight + (numPhotos * photoHeight) + ((numPhotos - 1) * photoGap) + footerHeight;
+
+            photostripCanvas.width = stripWidth;
+            photostripCanvas.height = totalStripHeight;
+            const ctx = photostripCanvas.getContext('2d');
+
+            // 1. Draw Background Frame Color
+            ctx.fillStyle = state.frameColor;
+            ctx.fillRect(0, 0, stripWidth, totalStripHeight);
+
+            // 2. Draw Frame Patterns (if selected)
+            if (state.framePattern === 'polka') {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                for (let x = 15; x < stripWidth; x += 35) {
+                    for (let y = 15; y < totalStripHeight; y += 35) {
+                        ctx.beginPath();
+                        ctx.arc(x, y, 6, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            } else if (state.framePattern === 'hearts') {
+                ctx.font = '16px serif';
+                ctx.fillStyle = 'rgba(255, 105, 180, 0.3)';
+                for (let x = 20; x < stripWidth; x += 60) {
+                    for (let y = 20; y < totalStripHeight; y += 60) {
+                        ctx.fillText('💖', x, y);
+                    }
+                }
+            }
+
+            // 3. Draw Each Photo with rounded corners and selected filter
+            photos.forEach((photoCanvas, idx) => {
+                const yPos = headerHeight + idx * (photoHeight + photoGap);
+
+                ctx.save();
+                
+                // Rounded corner clip for photos
+                const radius = 16;
+                ctx.beginPath();
+                ctx.moveTo(photoPadding + radius, yPos);
+                ctx.lineTo(photoPadding + photoWidth - radius, yPos);
+                ctx.quadraticCurveTo(photoPadding + photoWidth, yPos, photoPadding + photoWidth, yPos + radius);
+                ctx.lineTo(photoPadding + photoWidth, yPos + photoHeight - radius);
+                ctx.quadraticCurveTo(photoPadding + photoWidth, yPos + photoHeight, photoPadding + photoWidth - radius, yPos + photoHeight);
+                ctx.lineTo(photoPadding + radius, yPos + photoHeight);
+                ctx.quadraticCurveTo(photoPadding, yPos + photoHeight, photoPadding, yPos + photoHeight - radius);
+                ctx.lineTo(photoPadding, yPos + radius);
+                ctx.quadraticCurveTo(photoPadding, yPos, photoPadding + radius, yPos);
+                ctx.closePath();
+                ctx.clip();
+
+                // Apply current color filter using Canvas Filter API
+                if (state.currentFilter === 'filter-soft-pink') {
+                    ctx.filter = 'saturate(1.2) contrast(0.95) brightness(1.08) hue-rotate(-10deg) sepia(0.15)';
+                } else if (state.currentFilter === 'filter-vintage') {
+                    ctx.filter = 'sepia(0.45) contrast(1.1) brightness(0.95) saturate(1.1)';
+                } else if (state.currentFilter === 'filter-monochrome') {
+                    ctx.filter = 'grayscale(1) contrast(1.2) brightness(1.05)';
+                } else if (state.currentFilter === 'filter-warm-retro') {
+                    ctx.filter = 'sepia(0.25) saturate(1.4) contrast(1.05) hue-rotate(5deg)';
+                } else if (state.currentFilter === 'filter-dreamy') {
+                    ctx.filter = 'brightness(1.1) contrast(0.9) saturate(1.3)';
+                } else {
+                    ctx.filter = 'none';
+                }
+
+                ctx.drawImage(photoCanvas, photoPadding, yPos, photoWidth, photoHeight);
+                ctx.restore();
+
+                // Soft inner border for photos
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(photoPadding, yPos, photoWidth, photoHeight);
+            });
+
+            // 4. Header Branding Text
+            ctx.fillStyle = (state.frameColor === '#18181b') ? '#ffb6c1' : '#85143b';
+            ctx.font = 'bold 20px Fredoka, Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('✦ CACA PHOTOBOOTH STUDIO ✦', stripWidth / 2, 38);
+
+            // 5. Footer Custom Caption & Date Stamp
+            const footerY = totalStripHeight - 65;
+            ctx.fillStyle = (state.frameColor === '#18181b') ? '#ffffff' : '#5c1a29';
+            ctx.font = 'bold 22px Mali, Quicksand, cursive';
+            ctx.textAlign = 'center';
+            ctx.fillText(state.captionText || "✨ Caca's Photobooth ✨", stripWidth / 2, footerY);
+
+            // Date & Time Stamp
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            ctx.font = 'bold 12px Quicksand, sans-serif';
+            ctx.fillStyle = (state.frameColor === '#18181b') ? '#fda4bf' : '#e11d5a';
+            ctx.fillText(`• ${dateStr} • ANISA ARIYANI (UNJ 2025) •`, stripWidth / 2, footerY + 30);
+
+            // 6. Draw Placed Sticker Stamps
+            state.placedStickers.forEach(stk => {
+                ctx.font = `${stk.size}px serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(stk.emoji, stk.x, stk.y);
+            });
+
+            // Toggle Canvas Visibility
+            canvasEmptyState.classList.add('hidden');
+            photostripCanvas.classList.remove('hidden');
+        }
+
+        // Save current canvas strip to Gallery grid
+        function saveToGallery() {
+            if (photostripCanvas.classList.contains('hidden')) return;
+
+            const dataUrl = photostripCanvas.toDataURL('image/png');
+            state.galleryStrips.unshift(dataUrl);
+
+            // Update Gallery View
+            renderGallery();
+        }
+
+        function renderGallery() {
+            galleryGrid.innerHTML = '';
+            
+            if (state.galleryStrips.length === 0) {
+                galleryGrid.appendChild(galleryEmpty);
+                galleryCount.textContent = '0 Foto';
+                return;
+            }
+
+            galleryCount.textContent = `${state.galleryStrips.length} Foto`;
+
+            state.galleryStrips.forEach((stripUrl, idx) => {
+                const item = document.createElement('div');
+                item.className = 'pink-glass p-2.5 rounded-2xl flex flex-col items-center group relative transform hover:-translate-y-1 transition duration-300';
+                
+                item.innerHTML = `
+                    <div class="w-full bg-pinky-100 rounded-xl overflow-hidden aspect-[1/2] flex items-center justify-center border border-pinky-200">
+                        <img src="${stripUrl}" class="w-full h-full object-cover" alt="Strip ${idx + 1}">
+                    </div>
+                    <div class="mt-2 w-full flex items-center justify-between px-1">
+                        <span class="text-[10px] font-bold text-pinky-800">Strip #${state.galleryStrips.length - idx}</span>
+                        <a href="${stripUrl}" download="Caca-Photobooth-Strip-${idx+1}.png" class="text-pinky-600 hover:text-pinky-800 text-xs font-semibold" title="Download">
+                            <i class="fa-solid fa-download"></i>
+                        </a>
+                    </div>
+                `;
+                galleryGrid.appendChild(item);
+            });
+        }
+
+        // Initialize Background Sparkles Effect
+        function initSparkles() {
+            const container = document.getElementById('sparkleBg');
+            for (let i = 0; i < 20; i++) {
+                const el = document.createElement('div');
+                el.className = 'sparkle';
+                const size = Math.random() * 12 + 6;
+                el.style.width = `${size}px`;
+                el.style.height = `${size}px`;
+                el.style.top = `${Math.random() * 100}%`;
+                el.style.left = `${Math.random() * 100}%`;
+                el.style.animationDelay = `${Math.random() * 5}s`;
+                container.appendChild(el);
+            }
+        }
+
+        // EVENT LISTENERS BINDING
+        window.addEventListener('load', () => {
+            initSparkles();
+            setupCamera();
+
+            // Start Capture Button
+            startCaptureBtn.addEventListener('click', startPhotoboothSession);
+
+            // Mirror Toggle
+            mirrorBtn.addEventListener('click', () => {
+                state.isMirrored = !state.isMirrored;
+                webcam.classList.toggle('-scale-x-100', state.isMirrored);
+            });
+
+            // Demo Camera Fallback Button
+            useDemoBtn.addEventListener('click', () => {
+                state.isDemoMode = true;
+                cameraFallback.classList.add('hidden');
+                cameraFallback.classList.remove('flex');
+                showToast("Mode Demo Gambar diaktifkan!");
+            });
+
+            // Layout & Delay Selector Changes
+            layoutSelect.addEventListener('change', (e) => {
+                state.layoutMode = e.target.value;
+            });
+
+            timerSelect.addEventListener('change', (e) => {
+                state.timerDelay = parseInt(e.target.value, 10);
+            });
+
+            // Sound Toggle
+            soundToggleBtn.addEventListener('click', () => {
+                state.soundEnabled = !state.soundEnabled;
+                document.getElementById('soundText').textContent = state.soundEnabled ? 'Suara: ON' : 'Suara: OFF';
+                document.getElementById('soundIcon').className = state.soundEnabled ? 'fa-solid fa-volume-high text-pinky-500' : 'fa-solid fa-volume-xmark text-slate-400';
+            });
+
+            // Color Filters Button Handler
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => {
+                        b.classList.remove('active', 'border-2', 'border-pinky-500');
+                        b.classList.add('border', 'border-pinky-300');
+                    });
+                    btn.classList.add('active', 'border-2', 'border-pinky-500');
+                    btn.classList.remove('border-pinky-300');
+
+                    const filterName = btn.getAttribute('data-filter');
+                    webcam.className = `w-full h-full object-cover transition-all duration-300 ${filterName} ${state.isMirrored ? '-scale-x-100' : ''}`;
+                    state.currentFilter = filterName;
+
+                    if (state.capturedPhotos.length > 0) {
+                        renderPhotostripCanvas();
+                    }
+                });
+            });
+
+            // Frame Background Color Dots
+            const colorDots = document.querySelectorAll('.color-dot');
+            colorDots.forEach(dot => {
+                dot.addEventListener('click', () => {
+                    colorDots.forEach(d => d.classList.remove('scale-110', 'border-pinky-500'));
+                    dot.classList.add('scale-110', 'border-pinky-500');
+
+                    state.frameColor = dot.getAttribute('data-color');
+                    if (state.capturedPhotos.length > 0) renderPhotostripCanvas();
+                });
+            });
+
+            // Frame Style Patterns Buttons
+            const patternBtns = document.querySelectorAll('.pattern-btn');
+            patternBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    patternBtns.forEach(b => b.classList.remove('active', 'border-2', 'border-pinky-500'));
+                    btn.classList.add('active', 'border-2', 'border-pinky-500');
+
+                    state.framePattern = btn.getAttribute('data-pattern');
+                    if (state.capturedPhotos.length > 0) renderPhotostripCanvas();
+                });
+            });
+
+            // Custom Caption Input Live Update
+            customCaptionInput.addEventListener('input', (e) => {
+                state.captionText = e.target.value;
+                if (state.capturedPhotos.length > 0) renderPhotostripCanvas();
+            });
+
+            // Sticker Click to Add onto Canvas
+            const stickerBtns = document.querySelectorAll('.sticker-btn');
+            stickerBtns.forEach(sBtn => {
+                sBtn.addEventListener('click', () => {
+                    if (state.capturedPhotos.length === 0) {
+                        showToast("Ambil foto terlebih dahulu sebelum menempel sticker!");
+                        return;
+                    }
+
+                    const emoji = sBtn.textContent.trim();
+                    // Place randomly near bottom/top corners
+                    const x = Math.random() > 0.5 ? Math.random() * 80 + 50 : photostripCanvas.width - (Math.random() * 80 + 50);
+                    const y = Math.random() * (photostripCanvas.height - 150) + 80;
+                    
+                    state.placedStickers.push({ emoji, x, y, size: Math.floor(Math.random() * 16) + 32 });
+                    renderPhotostripCanvas();
+                    playBeep(880, 0.08, 'triangle');
+                    showToast(`Sticker ${emoji} ditambahkan ke strip!`);
+                });
+            });
+
+            // Download PNG Action
+            downloadStripBtn.addEventListener('click', () => {
+                if (photostripCanvas.classList.contains('hidden')) return;
+
+                saveToGallery();
+
+                const imageURL = photostripCanvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `Caca-Fotobooth-Strip-${Date.now()}.png`;
+                link.href = imageURL;
+                link.click();
+                
+                showToast("Photostrip berhasil diunduh & disimpan ke Galeri! 🎉");
+            });
+
+            // Clear / Retake Action
+            clearStripBtn.addEventListener('click', () => {
+                state.capturedPhotos = [];
+                state.placedStickers = [];
+                photostripCanvas.classList.add('hidden');
+                canvasEmptyState.classList.remove('hidden');
+                downloadStripBtn.disabled = true;
+                clearStripBtn.disabled = true;
+                showToast("Sesi foto direset. Siap untuk foto baru!");
+            });
+        });
+    </script>
+</body>
+</html>
